@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Google Fonts for modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-icon">📦</div>
+                <div>
+                    <h1>Inventory Management System</h1>
+                    <p class="brand-subtitle">College Mini-Project | Flask & SQLite3</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <span class="system-status-badge">
+                    <span class="status-dot"></span> System Online
+                </span>
+                <button class="btn btn-primary" onclick="scrollToAddProduct()">
+                    + Add New Product
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- Dashboard Summary KPI Cards -->
+        <section class="dashboard-kpis">
+            <div class="kpi-card card-total-products">
+                <div class="kpi-icon">🏷️</div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Total Products</span>
+                    <h2 class="kpi-value" id="kpi-total-products">0</h2>
+                    <span class="kpi-hint">Unique items in catalog</span>
+                </div>
+            </div>
+
+            <div class="kpi-card card-total-stock">
+                <div class="kpi-icon">📊</div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Total Stock Quantity</span>
+                    <h2 class="kpi-value" id="kpi-total-stock">0</h2>
+                    <span class="kpi-hint">Total units in inventory</span>
+                </div>
+            </div>
+
+            <div class="kpi-card card-low-stock" id="kpi-card-low-stock" onclick="filterByLowStockToggle()">
+                <div class="kpi-icon">⚠️</div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Low-Stock Alerts</span>
+                    <h2 class="kpi-value" id="kpi-low-stock">0</h2>
+                    <span class="kpi-hint">Items with quantity &le; 5</span>
+                </div>
+            </div>
+
+            <div class="kpi-card card-categories">
+                <div class="kpi-icon">📁</div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Categories</span>
+                    <h2 class="kpi-value" id="kpi-categories">0</h2>
+                    <span class="kpi-hint">Active classifications</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Grid: Add Product Form & Product List Table -->
+        <div class="content-layout">
+            <!-- Add Product Section -->
+            <section class="panel-section add-product-panel" id="add-product-panel">
+                <div class="panel-header">
+                    <h3>➕ Add New Product</h3>
+                    <p class="panel-desc">Enter item details to register into the inventory database.</p>
+                </div>
+
+                <form id="add-product-form" class="product-form" novalidate>
+                    <div class="form-group">
+                        <label for="product_id">Product ID <span class="required">*</span></label>
+                        <input 
+                            type="text" 
+                            id="product_id" 
+                            name="product_id" 
+                            placeholder="e.g. PRD107" 
+                            required 
+                            autocomplete="off"
+                        >
+                        <small class="field-hint">Must be unique (e.g., PRD101, ITM-05)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name">Product Name <span class="required">*</span></label>
+                        <input 
+                            type="text" 
+                            id="name" 
+                            name="name" 
+                            placeholder="e.g. Wireless Ergonomic Mouse" 
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Category <span class="required">*</span></label>
+                        <input 
+                            type="text" 
+                            id="category" 
+                            name="category" 
+                            list="category-suggestions" 
+                            placeholder="e.g. Electronics" 
+                            required
+                        >
+                        <datalist id="category-suggestions">
+                            <option value="Electronics">
+                            <option value="Stationery">
+                            <option value="Furniture">
+                            <option value="Accessories">
+                            <option value="Hardware">
+                            <option value="Books">
+                        </datalist>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="quantity">Quantity in Stock <span class="required">*</span></label>
+                            <input 
+                                type="number" 
+                                id="quantity" 
+                                name="quantity" 
+                                min="0" 
+                                step="1" 
+                                placeholder="0" 
+                                required
+                            >
+                            <small class="field-hint">&le; 5 flagged as low stock</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="price">Unit Price (₹ / $) <span class="required">*</span></label>
+                            <input 
+                                type="number" 
+                                id="price" 
+                                name="price" 
+                                min="0" 
+                                step="0.01" 
+                                placeholder="0.00" 
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-block" id="add-product-btn">
+                            Save Product
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-block" onclick="resetAddForm()">
+                            Clear Form
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- View Products Table Section -->
+            <section class="panel-section products-list-panel">
+                <div class="panel-header table-panel-header">
+                    <div>
+                        <h3>📋 Inventory Products</h3>
+                        <p class="panel-desc">Live listing synced with SQLite database via REST API.</p>
+                    </div>
+                    <div class="table-header-meta">
+                        <span id="product-count-badge" class="badge badge-info">0 Products</span>
+                    </div>
+                </div>
+
+                <!-- Search and Filtering Bar -->
+                <div class="filter-toolbar">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input 
+                            type="text" 
+                            id="search-input" 
+                            placeholder="Search by Product ID, Name, or Category..." 
+                            oninput="handleSearchInput()"
+                        >
+                        <button 
+                            type="button" 
+                            id="clear-search-btn" 
+                            class="btn-icon" 
+                            title="Clear Search" 
+                            onclick="clearSearch()"
+                        >✕</button>
+                    </div>
+
+                    <div class="filter-actions">
+                        <select id="category-filter" onchange="applyFilters()">
+                            <option value="">All Categories</option>
+                        </select>
+
+                        <button 
+                            id="low-stock-filter-btn" 
+                            class="btn btn-outline" 
+                            onclick="toggleLowStockFilter()"
+                        >
+                            ⚠️ Low Stock Only
+                        </button>
+
+                        <button 
+                            class="btn btn-outline" 
+                            title="Refresh from Database" 
+                            onclick="loadProducts()"
+                        >
+                            🔄 Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Responsive Products Table -->
+                <div class="table-wrapper">
+                    <table class="inventory-table" id="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Product ID</th>
+                                <th>Product Name</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total Value</th>
+                                <th>Stock Status</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body">
+                            <!-- Populated dynamically via JavaScript -->
+                        </tbody>
+                    </table>
+
+                    <!-- Loading State -->
+                    <div id="table-loading" class="table-message" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Loading products from database...</p>
+                    </div>
+
+                    <!-- Empty State / No Match State -->
+                    <div id="table-empty" class="table-message" style="display: none;">
+                        <div class="empty-icon">🔍</div>
+                        <h4 id="empty-title">No Products Found</h4>
+                        <p id="empty-message">No inventory records match your criteria. Try searching for something else or add a new product.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <p>College Mini-Project: <strong>Inventory Management System</strong> &bull; Python Flask &bull; SQLite3 &bull; Vanilla JavaScript &bull; Fetch API</p>
+    </footer>
+
+    <!-- ======================================================== -->
+    <!-- EDIT PRODUCT MODAL                                       -->
+    <!-- ======================================================== -->
+    <div id="edit-modal" class="modal-backdrop" style="display: none;" onclick="closeModalOnBackdrop(event, 'edit-modal')">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>✏️ Edit Product Details</h3>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="edit-product-form" class="product-form" novalidate>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-db-id">
+
+                    <div class="form-group">
+                        <label for="edit-product-id">Product ID <span class="required">*</span></label>
+                        <input type="text" id="edit-product-id" name="product_id" required>
+                        <small class="field-hint">Unique identifier for this item</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-name">Product Name <span class="required">*</span></label>
+                        <input type="text" id="edit-name" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-category">Category <span class="required">*</span></label>
+                        <input type="text" id="edit-category" name="category" list="category-suggestions" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-quantity">Quantity in Stock <span class="required">*</span></label>
+                            <input type="number" id="edit-quantity" name="quantity" min="0" step="1" required>
+                            <small class="field-hint">Values &le; 5 trigger Low Stock alert</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-price">Unit Price <span class="required">*</span></label>
+                            <input type="number" id="edit-price" name="price" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="save-edit-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- DELETE CONFIRMATION MODAL                                -->
+    <!-- ======================================================== -->
+    <div id="delete-modal" class="modal-backdrop" style="display: none;" onclick="closeModalOnBackdrop(event, 'delete-modal')">
+        <div class="modal-dialog modal-dialog-sm">
+            <div class="modal-header modal-header-danger">
+                <h3>🗑️ Confirm Product Deletion</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to permanently delete this product?</p>
+                <div class="delete-product-summary">
+                    <p><strong>Product:</strong> <span id="delete-product-name">--</span></p>
+                    <p><strong>Code:</strong> <span id="delete-product-id-label">--</span></p>
+                </div>
+                <p class="text-danger-note">⚠️ This operation cannot be undone and will remove the record from SQLite.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn" onclick="executeDeleteProduct()">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script src="/static/script.js"></script>
+</body>
+</html>
